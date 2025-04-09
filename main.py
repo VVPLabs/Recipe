@@ -49,7 +49,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @app.post("/recipe", response_model=RecipeResponse)
 def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    new_recipe = Recipe(**recipe.dict(), owner_id=current_user.id)
+    new_recipe = Recipe(**recipe.model_dump(), owner_id=current_user.id)
     db.add(new_recipe)
     db.commit()
     db.refresh(new_recipe)
@@ -72,7 +72,7 @@ def update_recipe(recipe_id: int, recipe: RecipeUpdate, db: Session = Depends(ge
     db_recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.owner_id == current_user.id).first()
     if db_recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found or not authorized")
-    for key, value in recipe.dict(exclude_unset=True).items():
+    for key, value in recipe.model_dump(exclude_unset=True).items():
         setattr(db_recipe, key, value)
     db.commit()
     db.refresh(db_recipe)
